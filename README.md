@@ -1,94 +1,88 @@
-# Apache Airflow Playground
+# Apache Airflow Playground con Docker Compose
 
-## Estructura de directorios
+Este repositorio contiene una práctica de DevOps en la que configuramos y ejecutamos un entorno de **Apache Airflow** en contenedores Docker. Además, creamos un nuevo DAG con tareas en paralelo para descargar datos, hacer merge de los archivos descargados y generar un informe combinado.
 
-```
+## Requisitos Previos
+
+- [Docker](https://www.docker.com/get-started)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Git](https://git-scm.com/downloads)
+
+## Puesta en Marcha
+
+1. **Clonar el Repositorio**  
+   Clona este repositorio en tu máquina local:
+
+   ```sh
+   git clone https://github.com/tu-usuario/airflow-with-docker-compose-playground.git
+   cd airflow-with-docker-compose-playground
+   ```
+
+2. **Iniciar los Servicios con Docker Compose**  
+   Inicia los contenedores de Docker:
+
+   ```sh
+   docker-compose up -d
+   ```
+
+3. **Obtener la Contraseña de Admin**  
+   En los logs, busca la línea que contiene `admin:password` para encontrar la contraseña de acceso al panel de Apache Airflow:
+
+   ```sh
+   docker-compose logs airflow | grep admin
+   ```
+
+   ![Contraseña del usuario 'admin'](assets/1.png)
+
+
+4. **Acceder a la Interfaz Web de Airflow**  
+   Abre [http://localhost:8001](http://localhost:8001) en tu navegador. Ingresa el usuario `admin` y la contraseña que obtuviste en el paso anterior.
+
+   ![Acceso correcto al dashboard de Airflow](assets/2.png)
+
+5. **Ejecutar el DAG `parallel_download_and_merge`**  
+   - En la interfaz de Airflow, habilita el DAG `parallel_download_and_merge`.
+   - Ejecútalo manualmente para que las tareas se procesen en el orden indicado: descargas paralelas, merge de datos, y generación de informe.
+
+6. **Verificar el Informe Generado**  
+   Una vez que el DAG finalice, revisa el archivo `combined_report.txt` generado en el contenedor. Puedes verlo directamente en la terminal:
+
+   ```sh
+   cat /tmp/combined_report.txt
+   ```
+
+   ![Reporte combinado logrado con éxito](assets/3.png)
+
+## Resolución de Problemas Comunes
+
+- **Si el DAG no aparece en la interfaz de Airflow:**  
+  Verifica que el archivo del DAG esté en la carpeta `dags/` y que no haya errores de sintaxis. Reinicia los servicios si es necesario:
+
+  ```sh
+  docker-compose restart
+  ```
+
+- **Si el puerto 8001 está ocupado:**  
+  Puedes cambiar el puerto en `docker-compose.yaml` reemplazando `8001` por otro puerto disponible.
+
+- **Problemas de permisos en la carpeta `outputs/`:**  
+  Asegúrate de que la carpeta tenga permisos de escritura:
+
+  ```sh
+  chmod -R 777 outputs/
+  ```
+
+## Estructura de Archivos del Proyecto
+
+```plaintext
 .
 ├── README.md
 ├── docker-compose.yaml
 ├── .env
 ├── dags/
-│   └── population_pipeline.py
+│   └── parallel_download_pipeline.py
 └── outputs/
-    └── .gitignore
+    └── combined_report.txt
 ```
 
-## Requisitos previos
-- Docker
-- Docker Compose
-- Git
-
-## Puesta en marcha
-
-1. Iniciar los servicios:
-```bash
-docker-compose up -d
-```
-
-2. Ver los logs (incluye la contraseña de admin):
-```bash
-docker-compose logs airflow
-```
-
-![How To](assets/snapshot_pwd_in_docker-compose_output.png)
-
-
-3. Acceder a la interfaz web:
-- URL: http://localhost:8001
-- Usuario: admin
-- Contraseña: buscar en los logs la línea que contiene "admin:password"
-
-## Verificar resultados
-
-1. Ver el resultado en outputs:
-```bash
-cat outputs/report.txt
-```
-
-2. O acceder directamente al contenedor:
-```bash
-docker-compose exec airflow bash
-cat /tmp/report.txt
-```
-
-## Detener los servicios
-
-```bash
-docker-compose down
-```
-
-## Comandos útiles
-
-- Ver logs en tiempo real:
-```bash
-docker-compose logs -f
-```
-
-- Reiniciar servicios:
-```bash
-docker-compose restart
-```
-
-- Limpiar todo (incluyendo volúmenes):
-```bash
-docker-compose down -v
-```
-
-## Resolución de problemas comunes
-
-1. Si no aparece la contraseña:
-   - Esperar un poco :)
-   - Filtrar la salida con `docker-compose logs airflow | grep admin`
-
-2. Si el puerto 8081 está ocupado:
-   - Modificar el puerto en docker-compose.yaml: "XXXX:8080"
-
-3. Si no aparece el DAG en la interfaz:
-   - Verificar la sintaxis del archivo Python
-   - Revisar los logs: `docker-compose logs airflow`
-
-4. Si no se pueden escribir los outputs:
-   - Verificar permisos en el directorio outputs
-   - Comprobar la configuración de volúmenes en docker-compose.yaml
-   - Regenerar el fichero de usuario: `echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" > .env` en el raíz del proyecto.
-
+Con estos pasos, podrás replicar la configuración y ver los resultados del pipeline de datos en Apache Airflow. ¡Buena suerte!
